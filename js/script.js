@@ -7,77 +7,98 @@ const getComputerChoice = () => {
     switch(rand){
         case 0: 
             return "rock";
-            break;
         case 1:
             return "paper";
-            break;
         default:
             return "scissors";
     }
 };
 
-// function that plays one round of rock, paper, scissors 
+// function that plays 1 round of R,P,S
+// Lose = -1
+// Tie = 0
+// Win = 1
 const playRound = (playerSelection, computerSelection) => {
     playerSelection = playerSelection.toLowerCase();
 
     let result;
-    
-    switch(playerSelection){
-        case "rock":
-            if(computerSelection === "rock") result = "Tie!"
-            else if(computerSelection === "paper") result = "You Lose!"
-            else result = "You Win!";
-            break;
-        case "paper":
-            if(computerSelection === "rock") result = "You Win!"
-            else if(computerSelection === "paper") result = "Tie!"
-            else result =  "You Lose!";
-            break;
-        case "scissors":
-            if(computerSelection === "rock") result = "You Lose!"
-            else if(computerSelection === "paper") result = "You Win!"
-            else result = "Tie!";
-            break;
-        default:
-            result = "invalid input";
+        
+    if(playerSelection === computerSelection) result = 0;
+    else{
+        switch(playerSelection){
+            case "rock":
+                if(computerSelection === "scissors") result = 1;
+                else result = -1;
+                break;
+            case "paper":
+                if(computerSelection === "rock") result = 1;
+                else result = -1;
+                break;
+            case "scissors":
+                if(computerSelection === "paper") result = 1;
+                else result = -1;
+                break;
+            default:
+                result = 0; // worst case - nothing happens - treat round as a Tie, just play another round
+        }
     }
-
+    
     return result;
 };
-
-// function that plays five rounds of rock, paper, scissors
-const playGame = (numRounds) => {
+ 
+// self executing function - waits for DOM to be ready, but not for all images to load
+// ref: https://stackoverflow.com/questions/9899372/vanilla-javascript-equivalent-of-jquerys-ready-how-to-call-a-function-whe
+(() => {
     let playerScore = 0;
     let computerScore = 0;
+    let selectionDiv = document.querySelector("#selectionContainer");
+    let resultDiv = document.querySelector("#resultContainer");
 
-    let result;
+    let playerChoiceEle = document.createElement('p');
+    let computerChoiceEle = document.createElement('p');
+    let descriptionEle = document.createElement('p');
+    let scoreTrackerEle = document.createElement('p');
+    let resultEle = document.createElement('h3');
 
-    while(numRounds > 0){
-        const playerSelection = prompt("Please enter your choice");
+    scoreTrackerEle.textContent = 'Player Score: ' + playerScore + ' | Computer Score: ' + computerScore;
+
+    resultDiv.appendChild(playerChoiceEle);
+    resultDiv.appendChild(computerChoiceEle);
+    resultDiv.appendChild(descriptionEle);
+    resultDiv.appendChild(scoreTrackerEle);
+    resultDiv.appendChild(resultEle);
+
+    selectionDiv.addEventListener('click', (e) => {
+        const playerSelection = e.target.value;
         const computerSelection = getComputerChoice();
 
-        if(playRound(playerSelection, computerSelection) === "You Win!"){
-            console.log("You win this round");
+        playerChoiceEle.textContent = 'Player chose: ' + playerSelection;
+        computerChoiceEle.textContent = 'Computer chose: ' + computerSelection;
+    
+        if(playRound(playerSelection, computerSelection) === 1){ // handle Win case
             playerScore++;
-        }
-        else if(playRound(playerSelection, computerSelection) === "You Lose!"){
-            console.log("You lose this round");
+            descriptionEle.textContent = playerSelection + ' beats ' + computerSelection + '. You Win this Round!';
+         }
+        else if(playRound(playerSelection, computerSelection) === -1){ // handle Lose case
             computerScore++;
+            descriptionEle.textContent = computerSelection + ' beats ' + playerSelection + '. You Lose this Round!';
         }
-        else console.log("Round is Tie!");
+        else{ // handle Tie case
+            descriptionEle.textContent = 'Round is Tie!';
+        }
 
-        console.log("Player Score: " + playerScore);
-        console.log("Computer Score: " + computerScore);
+        scoreTrackerEle.textContent = 'Player Score: ' + playerScore + ' | Computer Score: ' + computerScore;
 
-        numRounds--;
-    }   
-
-    if(playerScore > computerScore) result = "You Win the Game!";
-    else if (playerScore < computerScore) result = "You Lose the Game!";
-    else result = "Tie Game!";
-
-    return result;
-};
-
-let playButton = document.getElementById("playButton");
-playButton.addEventListener("click", () => console.log(playGame(5)));
+        if(playerScore === 5){
+            resultEle.textContent = 'You Win Rock, Paper, Scissors Game - WINNER WINNER CHICKEN DINNER!';
+            playerScore = 0;
+            computerScore = 0;
+        }
+        else if(computerScore === 5){
+            resultEle.textContent = 'You Lose Rock, Paper, Scissors Game - HOLD THIS L FOR ME BRUHHH! AHAHAHAHA';
+            playerScore = 0;
+            computerScore = 0;
+        }
+        else resultEle.textContent = '';
+    });
+})();
